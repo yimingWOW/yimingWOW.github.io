@@ -8,6 +8,6 @@ redirect_from:
 ---
 
 
-[stuartgeiger.com](http://stuartgeiger.com)
+[Fractal bitcoin 测试网节点部署 based on macos](https://yimingwow.github.io/talks/2024-08-22-talk-1)
 
 
