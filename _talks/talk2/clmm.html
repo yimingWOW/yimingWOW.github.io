@@ -19,7 +19,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>CLMM Exchange Curve (Translated CPMM)</h1>
+        <h1>CLMM Exchange Curve (Initial x=100, y=100)</h1>
         <div id="chart" class="chart"></div>
     </div>
 
@@ -34,22 +34,16 @@
 
         // Calculate how much y can be obtained for a given amount of x in CLMM
         function clmmYOut(xIn, initialX, initialY, minPrice, maxPrice) {
-            // Calculate the price after adding xIn
+            const k = initialX * initialY;
             const newX = initialX + xIn;
             const price = newX / initialY;
             
             // If price is outside the range, no exchange is possible
             if (price < minPrice || price > maxPrice) return 0;
             
-            // Calculate the maximum possible x input that keeps price within range
-            const maxXIn = initialY * maxPrice - initialX;
-            const actualXIn = Math.min(xIn, maxXIn);
-            
-            // Calculate y output using CPMM formula but with adjusted x input
-            const k = initialX * initialY;
-            const finalX = initialX + actualXIn;
-            const finalY = k / finalX;
-            return initialY - finalY;
+            // Calculate y output using CPMM formula
+            const newY = k / newX;
+            return initialY - newY;
         }
 
         // Generate data points
