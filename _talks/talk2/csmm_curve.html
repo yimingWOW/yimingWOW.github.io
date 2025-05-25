@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Curve Hybrid Model Exchange Curve</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Curve Hybrid Model Exchange Curve (Initial x=100, y=100)</h1>
+        <div id="chart" class="chart"></div>
+    </div>
+
+    <script>
+        // Calculate how much y can be obtained for a given amount of x in Curve's hybrid model
+        function calculateYOut(xIn, initialX, initialY) {
+            const k = initialX + initialY; // Constant sum component
+            const cpmmK = initialX * initialY; // CPMM component
+            const newX = initialX + xIn;
+            
+            // Weight factor based on distance from equilibrium
+            const equilibriumRatio = initialX / initialY;
+            const currentRatio = newX / initialY;
+            const distanceFromEquilibrium = Math.abs(currentRatio - equilibriumRatio);
+            const weight = Math.min(1, distanceFromEquilibrium / 0.5); // Adjust 0.5 to control transition point
+            
+            // Calculate both CSMM and CPMM components
+            const csmmY = k - newX;
+            const cpmmY = cpmmK / newX;
+            
+            // Blend the two components based on weight
+            const newY = (1 - weight) * csmmY + weight * cpmmY;
+            return initialY - newY; // Amount of y that can be obtained
+        }
+
+        // Generate data points
+        const initialX = 100;
+        const initialY = 100;
+        const xIn = Array.from({length: 200}, (_, i) => i * 2); // x input from 0 to 398
+        const yOut = xIn.map(x => calculateYOut(x, initialX, initialY));
+
+        // Create the chart
+        const trace = {
+            x: xIn,
+            y: yOut,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Curve Hybrid Model',
+            line: {
+                color: 'purple',
+                width: 2
+            }
+        };
+
+        const layout = {
+            title: 'Curve Hybrid Model Exchange Curve (Initial x=100, y=100)',
+            xaxis: {
+                title: 'Amount of X In',
+                range: [0, 400]
+            },
+            yaxis: {
+                title: 'Amount of Y Out',
+                range: [0, 100]
+            },
+            annotations: [{
+                x: 0,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: 'Initial State: x=100, y=100',
+                showarrow: true,
+                arrowhead: 2,
+                ax: 0,
+                ay: -40
+            }]
+        };
+
+        Plotly.newPlot('chart', [trace], layout);
+    </script>
+</body>
+</html>

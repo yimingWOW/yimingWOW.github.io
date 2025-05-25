@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CPMM Exchange Curve</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CPMM Exchange Curve (Initial x=100, y=100)</h1>
+        <div id="chart" class="chart"></div>
+    </div>
+
+    <script>
+        // Calculate how much y can be obtained for a given amount of x
+        function calculateYOut(xIn, initialX, initialY) {
+            const k = initialX * initialY;
+            const newX = initialX + xIn;
+            const newY = k / newX;
+            return initialY - newY; // Amount of y that can be obtained
+        }
+
+        // Generate data points
+        const initialX = 100;
+        const initialY = 100;
+        const xIn = Array.from({length: 100}, (_, i) => i * 5); // x input from 0 to 495
+        const yOut = xIn.map(x => calculateYOut(x, initialX, initialY));
+
+        // Create the chart
+        const trace = {
+            x: xIn,
+            y: yOut,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'CPMM Exchange Curve',
+            line: {
+                color: 'blue',
+                width: 2
+            }
+        };
+
+        const layout = {
+            title: 'CPMM Exchange Curve (Initial x=100, y=100)',
+            xaxis: {
+                title: 'Amount of X In',
+                range: [0, 500]
+            },
+            yaxis: {
+                title: 'Amount of Y Out',
+                range: [0, 100]
+            },
+            annotations: [{
+                x: 0,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: 'Initial State: x=100, y=100',
+                showarrow: true,
+                arrowhead: 2,
+                ax: 0,
+                ay: -40
+            }]
+        };
+
+        Plotly.newPlot('chart', [trace], layout);
+    </script>
+</body>
+</html>

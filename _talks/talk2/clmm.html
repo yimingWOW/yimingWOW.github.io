@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CLMM Exchange Curve</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CLMM Exchange Curve (Translated CPMM)</h1>
+        <div id="chart" class="chart"></div>
+    </div>
+
+    <script>
+        // CPMM curve
+        function cpmmCurve(x, k) {
+            return k / x;
+        }
+
+        // CLMM curve (translated CPMM)
+        function clmmCurve(x, k, minPrice, maxPrice) {
+            if (x < minPrice) return 0;
+            if (x > maxPrice) return 0;
+            // Translate the CPMM curve to the price range
+            const translatedX = x - minPrice;
+            const range = maxPrice - minPrice;
+            const translatedK = k * (range / maxPrice); // Adjust k for the new range
+            return cpmmCurve(translatedX, translatedK);
+        }
+
+        // Generate data points
+        const x = Array.from({length: 100}, (_, i) => i * 50);
+        const k = 100 * 100; // Initial liquidity (x=100, y=100)
+        const minPrice = 1800;
+        const maxPrice = 2200;
+        
+        const cpmmY = x.map(x => cpmmCurve(x, k));
+        const clmmY = x.map(x => clmmCurve(x, k, minPrice, maxPrice));
+
+        // Create CPMM trace
+        const cpmmTrace = {
+            x: x,
+            y: cpmmY,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'CPMM',
+            line: {
+                color: 'blue',
+                width: 2,
+                dash: 'dash'
+            }
+        };
+
+        // Create CLMM trace
+        const clmmTrace = {
+            x: x,
+            y: clmmY,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'CLMM',
+            line: {
+                color: 'red',
+                width: 2
+            }
+        };
+
+        const layout = {
+            title: 'CLMM vs CPMM Exchange Curves',
+            xaxis: {
+                title: 'Price',
+                range: [0, 5000]
+            },
+            yaxis: {
+                title: 'Liquidity',
+                range: [0, 2000]
+            },
+            annotations: [
+                {
+                    x: minPrice,
+                    y: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    text: 'Min Price',
+                    showarrow: true,
+                    arrowhead: 2,
+                    ax: 0,
+                    ay: -40
+                },
+                {
+                    x: maxPrice,
+                    y: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    text: 'Max Price',
+                    showarrow: true,
+                    arrowhead: 2,
+                    ax: 0,
+                    ay: -40
+                }
+            ]
+        };
+
+        Plotly.newPlot('chart', [cpmmTrace, clmmTrace], layout);
+    </script>
+</body>
+</html> 
