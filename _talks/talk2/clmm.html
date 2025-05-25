@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CLMM x-y Pool Curve</title>
+    <title>CLMM 兑换曲线</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
@@ -19,7 +19,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>CLMM池子中的x-y关系曲线</h1>
+        <h1>CLMM 兑换曲线 (xIn → yOut)</h1>
         <div id="chart" class="chart"></div>
     </div>
 
@@ -30,27 +30,27 @@
         const sqrtPa = Math.sqrt(Pa);
         const sqrtPb = Math.sqrt(Pb);
         const Lv = 100;
+        const x0 = 0;
+        const y0 = (Lv * Lv) / (x0 + Lv / sqrtPb) - Lv * sqrtPa;
 
-        // x-y关系公式
-        // y = (Lv^2) / (x + Lv/sqrtPb) - Lv*sqrtPa
-        const xMin = -Lv / sqrtPb + 1e-6; // 避免分母为0
-        const xMax = 200;
-        const xArr = [];
-        const yArr = [];
-        for (let i = 0; i < 200; i++) {
-            const x = xMin + (xMax - xMin) * i / 199;
-            const y = (Lv * Lv) / (x + Lv / sqrtPb) - Lv * sqrtPa;
-            xArr.push(x);
-            yArr.push(y);
+        // CLMM兑换曲线公式
+        function clmmYOut(xIn, x0, y0, Lv, sqrtPa, sqrtPb) {
+            const denom = x0 + xIn + Lv / sqrtPb;
+            const yNew = (Lv * Lv) / denom - Lv * sqrtPa;
+            return y0 - yNew;
         }
 
-        // 绘制CLMM x-y关系曲线
+        // 生成数据点
+        const xIn = Array.from({length: 100}, (_, i) => i * 2);
+        const yOut = xIn.map(x => clmmYOut(x, x0, y0, Lv, sqrtPa, sqrtPb));
+
+        // 绘制CLMM兑换曲线
         const clmmTrace = {
-            x: xArr,
-            y: yArr,
+            x: xIn,
+            y: yOut,
             type: 'scatter',
             mode: 'lines',
-            name: 'CLMM x-y关系',
+            name: 'CLMM 兑换曲线',
             line: {
                 color: 'red',
                 width: 2
@@ -58,14 +58,14 @@
         };
 
         const layout = {
-            title: 'CLMM池子中的x-y关系曲线',
+            title: 'CLMM 兑换曲线 (xIn → yOut)',
             xaxis: {
-                title: '池子中的x数量',
-                range: [xMin, xMax]
+                title: '输入的X数量 (xIn)',
+                range: [0, Math.max(...xIn)]
             },
             yaxis: {
-                title: '池子中的y数量',
-                range: [Math.min(...yArr), Math.max(...yArr)]
+                title: '可兑换的Y数量 (yOut)',
+                range: [0, Math.max(...yOut)]
             }
         };
 
