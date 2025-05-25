@@ -24,34 +24,38 @@
     </div>
 
     <script>
-        // CPMM curve
-        function cpmmCurve(x, k) {
-            return k / x;
+        // Calculate how much y can be obtained for a given amount of x in CPMM
+        function cpmmYOut(xIn, initialX, initialY) {
+            const k = initialX * initialY;
+            const newX = initialX + xIn;
+            const newY = k / newX;
+            return initialY - newY; // Amount of y that can be obtained
         }
 
-        // CLMM curve (translated CPMM)
-        function clmmCurve(x, k, minPrice, maxPrice) {
-            if (x < minPrice) return 0;
-            if (x > maxPrice) return 0;
-            // Translate the CPMM curve to the price range
-            const translatedX = x - minPrice;
-            const range = maxPrice - minPrice;
-            const translatedK = k * (range / maxPrice); // Adjust k for the new range
-            return cpmmCurve(translatedX, translatedK);
+        // Calculate how much y can be obtained for a given amount of x in CLMM
+        function clmmYOut(xIn, initialX, initialY, minPrice, maxPrice) {
+            // Convert x input to price
+            const price = (initialX + xIn) / initialY;
+            if (price < minPrice || price > maxPrice) return 0;
+            
+            // Calculate the translated x input
+            const translatedXIn = xIn * (maxPrice - minPrice) / maxPrice;
+            return cpmmYOut(translatedXIn, initialX, initialY);
         }
 
         // Generate data points
-        const x = Array.from({length: 100}, (_, i) => i * 50);
-        const k = 100 * 100; // Initial liquidity (x=100, y=100)
+        const initialX = 100;
+        const initialY = 100;
+        const xIn = Array.from({length: 100}, (_, i) => i * 5); // x input from 0 to 495
         const minPrice = 1800;
         const maxPrice = 2200;
         
-        const cpmmY = x.map(x => cpmmCurve(x, k));
-        const clmmY = x.map(x => clmmCurve(x, k, minPrice, maxPrice));
+        const cpmmY = xIn.map(x => cpmmYOut(x, initialX, initialY));
+        const clmmY = xIn.map(x => clmmYOut(x, initialX, initialY, minPrice, maxPrice));
 
         // Create CPMM trace
         const cpmmTrace = {
-            x: x,
+            x: xIn,
             y: cpmmY,
             type: 'scatter',
             mode: 'lines',
@@ -65,7 +69,7 @@
 
         // Create CLMM trace
         const clmmTrace = {
-            x: x,
+            x: xIn,
             y: clmmY,
             type: 'scatter',
             mode: 'lines',
@@ -77,39 +81,26 @@
         };
 
         const layout = {
-            title: 'CLMM vs CPMM Exchange Curves',
+            title: 'CLMM vs CPMM Exchange Curves (Initial x=100, y=100)',
             xaxis: {
-                title: 'Price',
-                range: [0, 5000]
+                title: 'Amount of X In',
+                range: [0, 500]
             },
             yaxis: {
-                title: 'Liquidity',
-                range: [0, 2000]
+                title: 'Amount of Y Out',
+                range: [0, 100]
             },
-            annotations: [
-                {
-                    x: minPrice,
-                    y: 0,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'Min Price',
-                    showarrow: true,
-                    arrowhead: 2,
-                    ax: 0,
-                    ay: -40
-                },
-                {
-                    x: maxPrice,
-                    y: 0,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'Max Price',
-                    showarrow: true,
-                    arrowhead: 2,
-                    ax: 0,
-                    ay: -40
-                }
-            ]
+            annotations: [{
+                x: 0,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: 'Initial State: x=100, y=100',
+                showarrow: true,
+                arrowhead: 2,
+                ax: 0,
+                ay: -40
+            }]
         };
 
         Plotly.newPlot('chart', [cpmmTrace, clmmTrace], layout);
