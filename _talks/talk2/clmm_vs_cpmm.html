@@ -38,8 +38,8 @@
         }
 
         // Generate data points
-        const x = Array.from({length: 100}, (_, i) => i * 50);
-        const k = 200000 * 100; // Initial liquidity
+        const x = Array.from({length: 100}, (_, i) => 50 + i * 50); // Start from 50 to avoid division by zero
+        const k = 100 * 100; // Initial liquidity (x=100, y=100)
         const cpmmY = x.map(x => cpmmCurve(x, k));
         const clmmY = x.map(x => clmmCurve(x, 1800, 2200));
 
@@ -70,14 +70,14 @@
         };
 
         const layout1 = {
-            title: 'CPMM Liquidity Distribution',
+            title: 'CPMM Exchange Curve (Initial x=100, y=100)',
             xaxis: {
-                title: 'Price (USDC/ETH)',
+                title: 'Amount of X',
                 range: [0, 5000]
             },
             yaxis: {
-                title: 'Liquidity',
-                range: [0, 100]
+                title: 'Amount of Y',
+                range: [0, 2000]
             }
         };
 
