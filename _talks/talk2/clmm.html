@@ -56,8 +56,11 @@
         const initialX = 100;
         const initialY = 100;
         const xIn = Array.from({length: 100}, (_, i) => i * 5); // x input from 0 to 495
-        const minPrice = 1800;
-        const maxPrice = 2200;
+        
+        // Set price range around the initial price (1:1)
+        const initialPrice = initialX / initialY; // 1.0
+        const minPrice = 0.8;  // 20% below initial price
+        const maxPrice = 1.2;  // 20% above initial price
         
         const cpmmY = xIn.map(x => cpmmYOut(x, initialX, initialY));
         const clmmY = xIn.map(x => clmmYOut(x, initialX, initialY, minPrice, maxPrice));
@@ -99,17 +102,41 @@
                 title: 'Amount of Y Out',
                 range: [0, 100]
             },
-            annotations: [{
-                x: 0,
-                y: 0,
-                xref: 'x',
-                yref: 'y',
-                text: 'Initial State: x=100, y=100',
-                showarrow: true,
-                arrowhead: 2,
-                ax: 0,
-                ay: -40
-            }]
+            annotations: [
+                {
+                    x: 0,
+                    y: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    text: 'Initial State: x=100, y=100',
+                    showarrow: true,
+                    arrowhead: 2,
+                    ax: 0,
+                    ay: -40
+                },
+                {
+                    x: initialY * minPrice - initialX,
+                    y: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    text: 'Min Price (0.8)',
+                    showarrow: true,
+                    arrowhead: 2,
+                    ax: 0,
+                    ay: -40
+                },
+                {
+                    x: initialY * maxPrice - initialX,
+                    y: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    text: 'Max Price (1.2)',
+                    showarrow: true,
+                    arrowhead: 2,
+                    ax: 0,
+                    ay: -40
+                }
+            ]
         };
 
         Plotly.newPlot('chart', [cpmmTrace, clmmTrace], layout);
