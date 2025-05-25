@@ -19,47 +19,41 @@
 </head>
 <body>
     <div class="container">
-        <h1>CLMM Exchange Curve (Initial x=100, y=100)</h1>
+        <h1>CLMM Exchange Curve (公式精确版)</h1>
         <div id="chart" class="chart"></div>
     </div>
 
     <script>
-        // Calculate how much y can be obtained for a given amount of x in CPMM
+        // CPMM公式
         function cpmmYOut(xIn, initialX, initialY) {
             const k = initialX * initialY;
             const newX = initialX + xIn;
             const newY = k / newX;
-            return initialY - newY; // Amount of y that can be obtained
-        }
-
-        // Calculate how much y can be obtained for a given amount of x in CLMM
-        function clmmYOut(xIn, initialX, initialY, minPrice, maxPrice) {
-            const k = initialX * initialY;
-            const newX = initialX + xIn;
-            const price = newX / initialY;
-            
-            // If price is outside the range, no exchange is possible
-            if (price < minPrice || price > maxPrice) return 0;
-            
-            // Calculate y output using CPMM formula
-            const newY = k / newX;
             return initialY - newY;
         }
 
-        // Generate data points
-        const initialX = 100;
-        const initialY = 100;
-        const xIn = Array.from({length: 100}, (_, i) => i * 5); // x input from 0 to 495
-        
-        // Set price range around the initial price (1:1)
-        const initialPrice = initialX / initialY; // 1.0
-        const minPrice = 0.8;  // 20% below initial price
-        const maxPrice = 1.2;  // 20% above initial price
-        
-        const cpmmY = xIn.map(x => cpmmYOut(x, initialX, initialY));
-        const clmmY = xIn.map(x => clmmYOut(x, initialX, initialY, minPrice, maxPrice));
+        // CLMM参数
+        const Pa = 0.8;
+        const Pb = 1.2;
+        const sqrtPa = Math.sqrt(Pa);
+        const sqrtPb = Math.sqrt(Pb);
+        const Lv = 100; // 虚拟流动性
+        const x0 = 0;
+        const y0 = 100 - Lv * sqrtPa;
 
-        // Create CPMM trace
+        // CLMM公式
+        function clmmYOut(xIn, x0, y0, Lv, sqrtPa, sqrtPb) {
+            const denom = x0 + xIn + Lv / sqrtPb;
+            const yNew = (Lv * Lv) / denom - Lv * sqrtPa;
+            return y0 - yNew;
+        }
+
+        // 生成数据点
+        const xIn = Array.from({length: 100}, (_, i) => i * 2); // x input from 0 to 198
+        const cpmmY = xIn.map(x => cpmmYOut(x, x0, y0));
+        const clmmY = xIn.map(x => clmmYOut(x, x0, y0, Lv, sqrtPa, sqrtPb));
+
+        // 绘制CPMM曲线
         const cpmmTrace = {
             x: xIn,
             y: cpmmY,
@@ -73,7 +67,7 @@
             }
         };
 
-        // Create CLMM trace
+        // 绘制CLMM曲线
         const clmmTrace = {
             x: xIn,
             y: clmmY,
@@ -87,50 +81,15 @@
         };
 
         const layout = {
-            title: 'CLMM vs CPMM Exchange Curves (Initial x=100, y=100)',
+            title: 'CLMM vs CPMM Exchange Curves (精确公式)',
             xaxis: {
                 title: 'Amount of X In',
-                range: [0, 500]
+                range: [0, 200]
             },
             yaxis: {
                 title: 'Amount of Y Out',
                 range: [0, 100]
-            },
-            annotations: [
-                {
-                    x: 0,
-                    y: 0,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'Initial State: x=100, y=100',
-                    showarrow: true,
-                    arrowhead: 2,
-                    ax: 0,
-                    ay: -40
-                },
-                {
-                    x: initialY * minPrice - initialX,
-                    y: 0,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'Min Price (0.8)',
-                    showarrow: true,
-                    arrowhead: 2,
-                    ax: 0,
-                    ay: -40
-                },
-                {
-                    x: initialY * maxPrice - initialX,
-                    y: 0,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'Max Price (1.2)',
-                    showarrow: true,
-                    arrowhead: 2,
-                    ax: 0,
-                    ay: -40
-                }
-            ]
+            }
         };
 
         Plotly.newPlot('chart', [cpmmTrace, clmmTrace], layout);
