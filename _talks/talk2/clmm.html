@@ -1,8 +1,7 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CLMM Exchange Curve</title>
+    <title>Delta x - Delta y Curve</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
@@ -20,67 +19,48 @@
 </head>
 <body>
     <div class="container">
-        <h1>CLMM Exchange Curve (Price range limited)</h1>
+        <h1>(x+A)(y+B) = (x+Δx+A)(y+Δy+B) 曲线</h1>
         <div id="chart" class="chart"></div>
     </div>
 
     <script>
-        const initialX = 100;
-        const initialY = 100;
-        const k = initialX * initialY;
+        const A = -50;
+        const B = -50;
+        const x = 100;
+        const y = 100;
 
-        // Price boundaries (P = y / x)
-        const P_min = 0.8;
-        const P_max = 1.2;
-
-        function isInPriceRange(x, y) {
-            const P = y / x;
-            return P >= P_min && P <= P_max;
+        const dxArr = [];
+        const dyArr = [];
+        for (let i = 0; i <= 100; i++) {
+            const dx = i; // Δx
+            const denom = x + dx + A;
+            if (denom === 0) continue; // 避免除零
+            const dy = -dx * (y + B) / denom;
+            dxArr.push(dx);
+            dyArr.push(dy);
         }
-
-        function calculateYOut(xIn) {
-            const newX = initialX + xIn;
-            const newY = k / newX;
-            const outY = initialY - newY;
-            return isInPriceRange(newX, newY) ? outY : null;
-        }
-
-        const xIn = Array.from({length: 100}, (_, i) => i * 2); // x from 0 to 198
-        const yOut = xIn.map(x => calculateYOut(x));
 
         const trace = {
-            x: xIn,
-            y: yOut,
+            x: dxArr,
+            y: dyArr,
             type: 'scatter',
             mode: 'lines',
-            name: 'CLMM Exchange Curve',
+            name: 'Δx-Δy 曲线',
             line: {
-                color: 'green',
+                color: 'purple',
                 width: 2
             }
         };
 
         const layout = {
-            title: 'CLMM Exchange Curve (Valid only in limited price range)',
+            title: '(x+A)(y+B) = (x+Δx+A)(y+Δy+B) 曲线 (A=B=-50, x=y=100)',
             xaxis: {
-                title: 'Amount of X In',
-                range: [0, 200]
-            },
-            yaxis: {
-                title: 'Amount of Y Out',
+                title: 'Δx (X的变化量)',
                 range: [0, 100]
             },
-            annotations: [{
-                x: 0,
-                y: 0,
-                xref: 'x',
-                yref: 'y',
-                text: 'CLMM range: P = 0.8 ~ 1.2',
-                showarrow: true,
-                arrowhead: 2,
-                ax: 0,
-                ay: -40
-            }]
+            yaxis: {
+                title: 'Δy (Y的变化量)'
+            }
         };
 
         Plotly.newPlot('chart', [trace], layout);
