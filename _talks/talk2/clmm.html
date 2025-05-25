@@ -34,13 +34,22 @@
 
         // Calculate how much y can be obtained for a given amount of x in CLMM
         function clmmYOut(xIn, initialX, initialY, minPrice, maxPrice) {
-            // Convert x input to price
-            const price = (initialX + xIn) / initialY;
+            // Calculate the price after adding xIn
+            const newX = initialX + xIn;
+            const price = newX / initialY;
+            
+            // If price is outside the range, no exchange is possible
             if (price < minPrice || price > maxPrice) return 0;
             
-            // Calculate the translated x input
-            const translatedXIn = xIn * (maxPrice - minPrice) / maxPrice;
-            return cpmmYOut(translatedXIn, initialX, initialY);
+            // Calculate the maximum possible x input that keeps price within range
+            const maxXIn = initialY * maxPrice - initialX;
+            const actualXIn = Math.min(xIn, maxXIn);
+            
+            // Calculate y output using CPMM formula but with adjusted x input
+            const k = initialX * initialY;
+            const finalX = initialX + actualXIn;
+            const finalY = k / finalX;
+            return initialY - finalY;
         }
 
         // Generate data points
