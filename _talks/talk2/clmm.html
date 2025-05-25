@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CLMM Exchange Curve</title>
+    <title>CLMM x-y Pool Curve</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
@@ -19,61 +19,38 @@
 </head>
 <body>
     <div class="container">
-        <h1>CLMM Exchange Curve (公式精确版)</h1>
+        <h1>CLMM池子中的x-y关系曲线</h1>
         <div id="chart" class="chart"></div>
     </div>
 
     <script>
-        // CPMM公式
-        function cpmmYOut(xIn, initialX, initialY) {
-            const k = initialX * initialY;
-            const newX = initialX + xIn;
-            const newY = k / newX;
-            return initialY - newY;
-        }
-
         // CLMM参数
         const Pa = 0.8;
         const Pb = 1.2;
         const sqrtPa = Math.sqrt(Pa);
         const sqrtPb = Math.sqrt(Pb);
-        const Lv = 100; // 虚拟流动性
-        const x0 = 0;
-        const y0 = 100 - Lv * sqrtPa;
+        const Lv = 100;
 
-        // CLMM公式
-        function clmmYOut(xIn, x0, y0, Lv, sqrtPa, sqrtPb) {
-            const denom = x0 + xIn + Lv / sqrtPb;
-            const yNew = (Lv * Lv) / denom - Lv * sqrtPa;
-            return y0 - yNew;
+        // x-y关系公式
+        // y = (Lv^2) / (x + Lv/sqrtPb) - Lv*sqrtPa
+        const xMin = -Lv / sqrtPb + 1e-6; // 避免分母为0
+        const xMax = 200;
+        const xArr = [];
+        const yArr = [];
+        for (let i = 0; i < 200; i++) {
+            const x = xMin + (xMax - xMin) * i / 199;
+            const y = (Lv * Lv) / (x + Lv / sqrtPb) - Lv * sqrtPa;
+            xArr.push(x);
+            yArr.push(y);
         }
 
-        // 生成数据点
-        const xIn = Array.from({length: 100}, (_, i) => i * 2); // x input from 0 to 198
-        const cpmmY = xIn.map(x => cpmmYOut(x, x0, y0));
-        const clmmY = xIn.map(x => clmmYOut(x, x0, y0, Lv, sqrtPa, sqrtPb));
-
-        // 绘制CPMM曲线
-        const cpmmTrace = {
-            x: xIn,
-            y: cpmmY,
-            type: 'scatter',
-            mode: 'lines',
-            name: 'CPMM',
-            line: {
-                color: 'blue',
-                width: 2,
-                dash: 'dash'
-            }
-        };
-
-        // 绘制CLMM曲线
+        // 绘制CLMM x-y关系曲线
         const clmmTrace = {
-            x: xIn,
-            y: clmmY,
+            x: xArr,
+            y: yArr,
             type: 'scatter',
             mode: 'lines',
-            name: 'CLMM',
+            name: 'CLMM x-y关系',
             line: {
                 color: 'red',
                 width: 2
@@ -81,18 +58,18 @@
         };
 
         const layout = {
-            title: 'CLMM vs CPMM Exchange Curves (精确公式)',
+            title: 'CLMM池子中的x-y关系曲线',
             xaxis: {
-                title: 'Amount of X In',
-                range: [0, 200]
+                title: '池子中的x数量',
+                range: [xMin, xMax]
             },
             yaxis: {
-                title: 'Amount of Y Out',
-                range: [0, 100]
+                title: '池子中的y数量',
+                range: [Math.min(...yArr), Math.max(...yArr)]
             }
         };
 
-        Plotly.newPlot('chart', [cpmmTrace, clmmTrace], layout);
+        Plotly.newPlot('chart', [clmmTrace], layout);
     </script>
 </body>
 </html> 
